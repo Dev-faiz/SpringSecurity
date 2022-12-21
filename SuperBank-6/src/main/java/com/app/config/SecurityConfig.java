@@ -22,26 +22,10 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain getConfigure(HttpSecurity http) throws Exception {
 		
-		http.authorizeHttpRequests(
-				(auth)-> 
-				auth.requestMatchers("/myAccount" , "/myBalance" , "/myCards" , "/myLoans" , "/user" , "/contact").authenticated()
-				.requestMatchers("/notices" , "/register" ,"/body").permitAll()
-				
-				
-				
-				);
-		
-		// ignoring CSRF attack for particular endPoints
-		
-		http.csrf().ignoringRequestMatchers("/register").csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-//		http.csrf().disable();
-		
-		
-		// managing CORS layers so that 2 different server can communicate  
 		http.cors().configurationSource(new CorsConfigurationSource() {
 			
 			@Override
-			public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+			public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {// managing CORS layers so that 2 different server can communicate  
 				CorsConfiguration corsConfig = new CorsConfiguration();
 				
 					corsConfig.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
@@ -51,7 +35,31 @@ public class SecurityConfig {
 					corsConfig.setMaxAge(3600L);
 					return corsConfig;
 			}
-		});
+		}).and().csrf().ignoringRequestMatchers("/register").csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+		.and().authorizeHttpRequests(
+				(auth)-> auth
+//				auth.requestMatchers("/myAccount" , "/myBalance" , "/myCards" , "/myLoans" , "/user" , "/contact").authenticated()
+//				.requestMatchers("/notices" , "/register" ,"/body").permitAll()
+//				.requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
+//				.requestMatchers("/myBalance").hasAnyAuthority("VIEWACCOUNT" , "VIEWBALANCE")
+//				.requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
+//				.requestMatchers("/myCards").hasAuthority("VIEWCARDS")
+				.requestMatchers("/myAccount").hasRole("USER")
+                .requestMatchers("/myBalance").hasAnyRole("USER","ADMIN")
+                .requestMatchers("/myLoans").hasRole("USER")
+                .requestMatchers("/myCards").hasRole("USER")
+				.requestMatchers("/user").authenticated()
+				.requestMatchers("/register" , "/contact" , "/notices" ).permitAll()
+				);
+		
+		
+		
+		
+
+		
+		
+		
+		;
 		
 		http.formLogin();
 		http.httpBasic() ; 
